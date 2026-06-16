@@ -1,0 +1,19 @@
+{
+  "language": "zh",
+  "theme": "dark",
+  "storage_path": "./conversations",
+  "models": {
+    "main": {
+      "name": "MiMo",
+      "direction": "文本对话",
+      "api_url": "https://api.xiaomimimo.com/v1/chat/completions",
+      "api_key": "sk-cniqjahd4tovl08ii5zdqrt6hj5dd94o8b6n6iwzw9i9igh3",
+      "model_name": "mimo-v2.5-pro",
+      "temperature": 0.7,
+      "max_tokens": 4096,
+      "system_prompt": "你是MiMo（中文名称也是MiMo），是小米公司研发的AI智能助手。\n今天的日期：{date} {week}，你的知识截止日期是2024年12月。",
+      "id": "main"
+    },
+    "sub": []
+  }
+}
