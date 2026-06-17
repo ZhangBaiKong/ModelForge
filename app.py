@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""模型整合 GUI"""
+"""
+模型整合 GUI (ModelForge GUI)
+三栏布局：左侧对话列表 | 中间对话区 | 右侧模型面板+日志+设置
+"""
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog
@@ -13,6 +16,9 @@ from config_manager import ConfigManager
 from engine import Orchestrator
 
 
+# ================================================================
+# 主题配色 (Themes)
+# ================================================================
 THEMES = {
     "dark": {
         "bg": "#1a1a2e", "surface": "#16213e", "surface2": "#0f3460",
@@ -32,52 +38,84 @@ THEMES = {
     },
 }
 
+
+# ================================================================
+# 多语言 (i18n)
+# ================================================================
 LANG = {
     "zh": {
-        "title": "模型整合", "new_chat": "＋ 新建对话",
-        "search_hint": "搜索对话...", "pin": "置顶", "unpin": "取消置顶",
+        "title": "模型整合 (ModelForge)",
+        "new_chat": "＋ 新建对话",
+        "search_hint": "搜索对话...",
+        "pin": "置顶", "unpin": "取消置顶",
         "rename": "重命名", "delete": "删除", "export": "导出",
-        "models": "模型", "add_model": "＋ 添加模型",
+        "models": "模型 (Models)",
+        "add_model": "＋ 添加模型",
         "main": "主模型", "sub": "副模型",
-        "logs": "运行日志", "settings": "软件设置",
-        "theme": "主题", "dark": "深色", "light": "浅色",
-        "lang": "语言", "storage": "存储路径", "browse": "浏览",
-        "send": "发送", "cfg_model": "配置模型",
-        "m_name": "名称", "m_dir": "方向", "m_url": "API地址",
-        "m_key": "API密钥", "m_id": "模型名", "m_temp": "温度",
-        "m_tokens": "最大Token", "m_prompt": "系统提示词",
-        "test": "测试连接", "save": "保存", "cancel": "取消",
+        "logs": "运行日志 (Logs)",
+        "settings": "软件设置 (Settings)",
+        "theme": "主题 (Theme)",
+        "dark": "深色 Dark", "light": "浅色 Light",
+        "lang": "语言 (Language)",
+        "storage": "存储路径 (Storage)",
+        "browse": "浏览",
+        "send": "发送 (Ctrl+Enter)",
+        "cfg_model": "配置模型 (Model Config)",
+        "m_name": "名称 (Name)",
+        "m_dir": "方向 (Direction)",
+        "m_url": "API 地址 (API URL)",
+        "m_key": "API 密钥 (API Key)",
+        "m_id": "模型名 (Model ID)",
+        "m_temp": "温度 (Temperature)",
+        "m_tokens": "最大 Token (Max Tokens)",
+        "m_prompt": "系统提示词 (System Prompt)",
+        "test": "测试连接 (Test)",
+        "save": "保存", "cancel": "取消",
         "thinking": "思考中...",
-        "welcome": "欢迎使用模型整合！\n请先在右侧配置主模型。",
+        "welcome": "欢迎使用模型整合 (ModelForge)！\n请先在右侧配置主模型。",
         "del_confirm": "确认删除此对话？",
         "del_model_confirm": "确认删除此模型？",
-        "no_main": "请先配置主模型",
-        "dirs": ["文本对话", "代码生成", "图片识别", "界面生成", "翻译", "自定义"],
+        "dirs": [
+            "文本对话 (Chat)", "代码生成 (Code)",
+            "图片识别 (Vision)", "界面生成 (UI Gen)",
+            "翻译 (Translate)", "自定义 (Custom)",
+        ],
     },
     "en": {
-        "title": "ModelForge", "new_chat": "+ New Chat",
-        "search_hint": "Search...", "pin": "Pin", "unpin": "Unpin",
+        "title": "ModelForge",
+        "new_chat": "+ New Chat",
+        "search_hint": "Search...",
+        "pin": "Pin", "unpin": "Unpin",
         "rename": "Rename", "delete": "Delete", "export": "Export",
-        "models": "Models", "add_model": "+ Add Model",
+        "models": "Models",
+        "add_model": "+ Add Model",
         "main": "Main", "sub": "Sub",
-        "logs": "Logs", "settings": "Settings",
-        "theme": "Theme", "dark": "Dark", "light": "Light",
-        "lang": "Language", "storage": "Storage", "browse": "Browse",
-        "send": "Send", "cfg_model": "Configure Model",
-        "m_name": "Name", "m_dir": "Direction", "m_url": "API URL",
-        "m_key": "API Key", "m_id": "Model ID", "m_temp": "Temperature",
+        "logs": "Logs",
+        "settings": "Settings",
+        "theme": "Theme",
+        "dark": "Dark", "light": "Light",
+        "lang": "Language",
+        "storage": "Storage",
+        "browse": "Browse",
+        "send": "Send (Ctrl+Enter)",
+        "cfg_model": "Model Config",
+        "m_name": "Name", "m_dir": "Direction",
+        "m_url": "API URL", "m_key": "API Key",
+        "m_id": "Model ID", "m_temp": "Temperature",
         "m_tokens": "Max Tokens", "m_prompt": "System Prompt",
-        "test": "Test", "save": "Save", "cancel": "Cancel",
+        "test": "Test Connection", "save": "Save", "cancel": "Cancel",
         "thinking": "Thinking...",
-        "welcome": "Welcome!\nPlease configure the main model first.",
+        "welcome": "Welcome to ModelForge!\nPlease configure the main model first.",
         "del_confirm": "Delete this conversation?",
         "del_model_confirm": "Delete this model?",
-        "no_main": "Please configure the main model first",
         "dirs": ["Chat", "Code", "Vision", "UI Gen", "Translate", "Custom"],
     },
 }
 
 
+# ================================================================
+# 模型配置弹窗 (Model Config Dialog)
+# ================================================================
 class ModelConfigDialog(tk.Toplevel):
     def __init__(self, parent, theme, lang, model_data=None, callback=None):
         super().__init__(parent)
@@ -87,7 +125,7 @@ class ModelConfigDialog(tk.Toplevel):
         self.callback = callback
 
         self.title(lang["cfg_model"])
-        self.geometry("480x620")
+        self.geometry("500x650")
         self.configure(bg=theme["bg"])
         self.resizable(False, False)
         self.grab_set()
@@ -97,15 +135,15 @@ class ModelConfigDialog(tk.Toplevel):
         if model_data:
             self._load(model_data)
 
-    def _lbl(self, p, text):
+    def _lbl(self, parent, text):
         tk.Label(
-            p, text=text, bg=self.theme["bg"], fg=self.theme["muted"],
+            parent, text=text, bg=self.theme["bg"], fg=self.theme["muted"],
             font=("Microsoft YaHei", 9), anchor="w",
         ).pack(fill="x", pady=(8, 2))
 
-    def _entry(self, p):
+    def _entry(self, parent):
         e = tk.Entry(
-            p, bg=self.theme["entry_bg"], fg=self.theme["entry_fg"],
+            parent, bg=self.theme["entry_bg"], fg=self.theme["entry_fg"],
             insertbackground=self.theme["text"], relief="flat",
             font=("Consolas", 10),
         )
@@ -114,68 +152,68 @@ class ModelConfigDialog(tk.Toplevel):
 
     def _build(self):
         t, l = self.theme, self.lang
-        f = tk.Frame(self, bg=t["bg"], padx=20, pady=10)
-        f.pack(fill="both", expand=True)
+        frame = tk.Frame(self, bg=t["bg"], padx=20, pady=10)
+        frame.pack(fill="both", expand=True)
 
-        self._lbl(f, l["m_name"])
-        self.w_name = self._entry(f)
+        self._lbl(frame, l["m_name"])
+        self.w_name = self._entry(frame)
 
-        self._lbl(f, l["m_dir"])
-        self.w_dir = ttk.Combobox(f, values=l["dirs"], state="readonly")
+        self._lbl(frame, l["m_dir"])
+        self.w_dir = ttk.Combobox(frame, values=l["dirs"], state="readonly")
         self.w_dir.pack(fill="x", pady=(0, 4))
 
-        self._lbl(f, l["m_url"])
-        self.w_url = self._entry(f)
+        self._lbl(frame, l["m_url"])
+        self.w_url = self._entry(frame)
 
-        self._lbl(f, l["m_key"])
-        kf = tk.Frame(f, bg=t["bg"])
-        kf.pack(fill="x", pady=(0, 4))
+        self._lbl(frame, l["m_key"])
+        key_frame = tk.Frame(frame, bg=t["bg"])
+        key_frame.pack(fill="x", pady=(0, 4))
         self.w_key = tk.Entry(
-            kf, show="*", bg=t["entry_bg"], fg=t["entry_fg"],
+            key_frame, show="*", bg=t["entry_bg"], fg=t["entry_fg"],
             insertbackground=t["text"], relief="flat", font=("Consolas", 10),
         )
         self.w_key.pack(side="left", fill="x", expand=True)
         tk.Button(
-            kf, text="👁", command=self._toggle_key,
+            key_frame, text="👁", command=self._toggle_key,
             bg=t["surface"], fg=t["text"], relief="flat", width=3,
         ).pack(side="right", padx=(4, 0))
 
-        self._lbl(f, l["m_id"])
-        self.w_model = self._entry(f)
+        self._lbl(frame, l["m_id"])
+        self.w_model = self._entry(frame)
 
-        self._lbl(f, l["m_temp"])
+        self._lbl(frame, l["m_temp"])
         self.w_temp = tk.Scale(
-            f, from_=0, to=2, resolution=0.1, orient="horizontal",
+            frame, from_=0, to=2, resolution=0.1, orient="horizontal",
             bg=t["bg"], fg=t["text"], highlightthickness=0,
             troughcolor=t["surface2"], activebackground=t["accent"],
         )
         self.w_temp.set(0.7)
         self.w_temp.pack(fill="x", pady=(0, 4))
 
-        self._lbl(f, l["m_tokens"])
-        self.w_tokens = self._entry(f)
+        self._lbl(frame, l["m_tokens"])
+        self.w_tokens = self._entry(frame)
         self.w_tokens.insert(0, "4096")
 
-        self._lbl(f, l["m_prompt"])
+        self._lbl(frame, l["m_prompt"])
         self.w_prompt = tk.Text(
-            f, height=4, bg=t["entry_bg"], fg=t["entry_fg"],
+            frame, height=4, bg=t["entry_bg"], fg=t["entry_fg"],
             insertbackground=t["text"], relief="flat",
             font=("Microsoft YaHei", 9), wrap="word",
         )
         self.w_prompt.pack(fill="x", pady=(0, 10))
 
-        bf = tk.Frame(f, bg=t["bg"])
-        bf.pack(fill="x")
+        btn_frame = tk.Frame(frame, bg=t["bg"])
+        btn_frame.pack(fill="x")
         tk.Button(
-            bf, text=l["test"], command=self._test,
+            btn_frame, text=l["test"], command=self._test_connection,
             bg=t["surface2"], fg=t["text"], relief="flat", padx=12,
         ).pack(side="left")
         tk.Button(
-            bf, text=l["save"], command=self._save,
+            btn_frame, text=l["save"], command=self._save,
             bg=t["btn_bg"], fg=t["btn_fg"], relief="flat", padx=16,
         ).pack(side="right", padx=(4, 0))
         tk.Button(
-            bf, text=l["cancel"], command=self.destroy,
+            btn_frame, text=l["cancel"], command=self.destroy,
             bg=t["surface"], fg=t["text"], relief="flat", padx=12,
         ).pack(side="right")
 
@@ -194,7 +232,7 @@ class ModelConfigDialog(tk.Toplevel):
         self.w_tokens.insert(0, str(d.get("max_tokens", 4096)))
         self.w_prompt.insert("1.0", d.get("system_prompt", ""))
 
-    def _get(self):
+    def _get_data(self):
         return {
             "name": self.w_name.get().strip(),
             "direction": self.w_dir.get().strip(),
@@ -206,11 +244,11 @@ class ModelConfigDialog(tk.Toplevel):
             "system_prompt": self.w_prompt.get("1.0", "end").strip(),
         }
 
-    def _test(self):
+    def _test_connection(self):
         import requests as rq
-        d = self._get()
+        d = self._get_data()
         if not d["api_url"] or not d["api_key"]:
-            messagebox.showwarning("提示", "请填写API地址和密钥")
+            messagebox.showwarning("提示", "请填写 API 地址和密钥")
             return
 
         def go():
@@ -226,22 +264,28 @@ class ModelConfigDialog(tk.Toplevel):
                 }
                 r = rq.post(d["api_url"], headers=h, json=p, timeout=15)
                 r.raise_for_status()
-                self.after(0, lambda: messagebox.showinfo("成功", "连接正常！"))
+                self.after(0, lambda: messagebox.showinfo(
+                    "成功", "连接正常！"))
             except Exception as e:
-                 error_msg = str(e)
-                 self.after(0, lambda: messagebox.showerror("失败", error_msg))
+                error_msg = str(e)
+                self.after(0, lambda: messagebox.showerror(
+                    "失败", error_msg))
+
         threading.Thread(target=go, daemon=True).start()
 
     def _save(self):
-        d = self._get()
+        d = self._get_data()
         if not d["name"]:
-            messagebox.showwarning("提示", "请填写名称")
+            messagebox.showwarning("提示", "请填写模型名称")
             return
         if self.callback:
             self.callback(d)
         self.destroy()
 
 
+# ================================================================
+# 主应用 (Main Application)
+# ================================================================
 class ModelForgeApp:
     def __init__(self):
         self.root = tk.Tk()
@@ -259,125 +303,151 @@ class ModelForgeApp:
         self.attachments = []
 
         self._setup_window()
-        self._create_left()
-        self._create_center()
-        self._create_right()
+        self._create_left_panel()
+        self._create_center_panel()
+        self._create_right_panel()
         self._load_all_conversations()
         self._refresh_model_list()
-        self.add_log("应用已启动")
+        self.add_log("应用已启动 (Application started)")
 
+    # ────────────────────────────────────────
+    # 窗口基础设置
+    # ────────────────────────────────────────
     def _setup_window(self):
         self.root.title(self.l["title"])
         self.root.geometry("1200x720")
         self.root.minsize(900, 550)
         self.root.configure(bg=self.t["bg"])
+
         self.root.columnconfigure(0, weight=1, minsize=180)
         self.root.columnconfigure(1, weight=3, minsize=350)
         self.root.columnconfigure(2, weight=2, minsize=260)
         self.root.rowconfigure(0, weight=1)
+
         self.root.update_idletasks()
         w, h = 1200, 720
         x = (self.root.winfo_screenwidth() - w) // 2
         y = (self.root.winfo_screenheight() - h) // 2
         self.root.geometry(f"{w}x{h}+{x}+{y}")
 
-    def _create_left(self):
+    # ────────────────────────────────────────
+    # 左栏：对话列表
+    # ────────────────────────────────────────
+    def _create_left_panel(self):
         t, l = self.t, self.l
-        f = tk.Frame(self.root, bg=t["bg"])
-        f.grid(row=0, column=0, sticky="nsew", padx=(5, 2), pady=5)
-        f.rowconfigure(2, weight=1)
-        f.columnconfigure(0, weight=1)
+        panel = tk.Frame(self.root, bg=t["bg"])
+        panel.grid(row=0, column=0, sticky="nsew", padx=(5, 2), pady=5)
+        panel.rowconfigure(2, weight=1)
+        panel.columnconfigure(0, weight=1)
 
         tk.Label(
-            f, text=l["title"], bg=t["bg"], fg=t["accent"],
+            panel, text=l["title"], bg=t["bg"], fg=t["accent"],
             font=("Microsoft YaHei", 14, "bold"),
         ).grid(row=0, column=0, sticky="w", padx=8, pady=(5, 8))
 
         tk.Button(
-            f, text=l["new_chat"], command=self._new_conv,
+            panel, text=l["new_chat"], command=self._new_conv,
             bg=t["btn_bg"], fg=t["btn_fg"], relief="flat",
             font=("Microsoft YaHei", 9),
         ).grid(row=1, column=0, sticky="ew", padx=8, pady=(0, 4))
 
-        sf = tk.Frame(f, bg=t["bg"])
-        sf.grid(row=1, column=0, sticky="ew", padx=8, pady=(32, 4))
+        search_frame = tk.Frame(panel, bg=t["bg"])
+        search_frame.grid(row=1, column=0, sticky="ew", padx=8, pady=(32, 4))
         self.search_var = tk.StringVar()
         self.search_var.trace_add("write", lambda *_: self._refresh_conv_list())
-        se = tk.Entry(
-            sf, textvariable=self.search_var,
+        search_entry = tk.Entry(
+            search_frame, textvariable=self.search_var,
             bg=t["entry_bg"], fg=t["entry_fg"],
             insertbackground=t["text"], relief="flat",
             font=("Microsoft YaHei", 9),
         )
-        se.pack(fill="x")
+        search_entry.pack(fill="x")
         hint = l["search_hint"]
-        if hint:
-            se.insert(0, hint)
-            se.bind(
-                "<FocusIn>",
-                lambda e: se.delete(0, "end") if se.get() == hint else None,
-            )
+        search_entry.insert(0, hint)
+        search_entry.bind(
+            "<FocusIn>",
+            lambda e: search_entry.delete(0, "end")
+            if search_entry.get() == hint else None,
+        )
 
         self.conv_lb = tk.Listbox(
-            f, bg=t["list_bg"], fg=t["list_fg"],
+            panel, bg=t["list_bg"], fg=t["list_fg"],
             selectbackground=t["list_sel"], selectforeground=t["list_fg"],
             relief="flat", font=("Microsoft YaHei", 10),
             activestyle="none", highlightthickness=0,
         )
         self.conv_lb.grid(row=2, column=0, sticky="nsew", padx=8, pady=4)
         self.conv_lb.bind("<<ListboxSelect>>", self._on_conv_select)
-        self.conv_lb.bind("<Button-3>", self._conv_context)
+        self.conv_lb.bind("<Button-3>", self._conv_context_menu)
 
-        sb = tk.Scrollbar(f, command=self.conv_lb.yview)
-        sb.grid(row=2, column=1, sticky="ns")
-        self.conv_lb.config(yscrollcommand=sb.set)
+        scrollbar = tk.Scrollbar(panel, command=self.conv_lb.yview)
+        scrollbar.grid(row=2, column=1, sticky="ns")
+        self.conv_lb.config(yscrollcommand=scrollbar.set)
 
-    def _create_center(self):
+    # ────────────────────────────────────────
+    # 中栏：对话区
+    # ────────────────────────────────────────
+    def _create_center_panel(self):
         t, l = self.t, self.l
-        f = tk.Frame(self.root, bg=t["bg"])
-        f.grid(row=0, column=1, sticky="nsew", padx=2, pady=5)
-        f.rowconfigure(0, weight=1)
-        f.columnconfigure(0, weight=1)
+        panel = tk.Frame(self.root, bg=t["bg"])
+        panel.grid(row=0, column=1, sticky="nsew", padx=2, pady=5)
+        panel.rowconfigure(0, weight=1)
+        panel.columnconfigure(0, weight=1)
 
         self.chat_text = tk.Text(
-            f, bg=t["surface"], fg=t["text"], relief="flat",
+            panel, bg=t["surface"], fg=t["text"], relief="flat",
             font=("Microsoft YaHei", 10), wrap="word", state="disabled",
             insertbackground=t["text"], highlightthickness=0, padx=12, pady=8,
         )
         self.chat_text.grid(row=0, column=0, sticky="nsew", pady=(0, 4))
-        csb = tk.Scrollbar(f, command=self.chat_text.yview)
-        csb.grid(row=0, column=1, sticky="ns")
-        self.chat_text.config(yscrollcommand=csb.set)
+        chat_scrollbar = tk.Scrollbar(panel, command=self.chat_text.yview)
+        chat_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.chat_text.config(yscrollcommand=chat_scrollbar.set)
 
         self.chat_text.tag_configure(
             "user_tag", foreground=t["chat_user"],
-            font=("Microsoft YaHei", 9, "bold"),
-        )
+            font=("Microsoft YaHei", 9, "bold"))
         self.chat_text.tag_configure(
             "ai_tag", foreground=t["chat_ai"],
-            font=("Microsoft YaHei", 9, "bold"),
-        )
+            font=("Microsoft YaHei", 9, "bold"))
         self.chat_text.tag_configure(
             "msg", foreground=t["text"], font=("Microsoft YaHei", 10),
-            lmargin1=10, lmargin2=10,
-        )
+            lmargin1=10, lmargin2=10)
         self.chat_text.tag_configure(
             "sys", foreground=t["muted"],
-            font=("Microsoft YaHei", 9, "italic"), justify="center",
-        )
+            font=("Microsoft YaHei", 9, "italic"), justify="center")
         self.chat_text.tag_configure("thinking_tag", foreground=t["accent"])
+        self.chat_text.tag_configure(
+            "file_tag", foreground="#e0a030",
+            font=("Microsoft YaHei", 9, "italic"))
 
-        inp = tk.Frame(f, bg=t["bg"])
-        inp.grid(row=1, column=0, columnspan=2, sticky="ew")
-        inp.columnconfigure(1, weight=1)
+        # 附件提示条
+        self.attach_bar = tk.Frame(panel, bg=t["surface2"], height=28)
+        self.attach_bar.grid(row=1, column=0, columnspan=2, sticky="ew")
+        self.attach_bar.grid_propagate(False)
+        self.attach_label = tk.Label(
+            self.attach_bar, text="", bg=t["surface2"], fg="#e0a030",
+            font=("Microsoft YaHei", 9), anchor="w", padx=8)
+        self.attach_label.pack(side="left", fill="x", expand=True)
+        self.attach_clear_btn = tk.Button(
+            self.attach_bar, text="✕ 清除", command=self._clear_attachments,
+            bg=t["surface2"], fg="#e0a030", relief="flat",
+            font=("Microsoft YaHei", 8))
+        self.attach_clear_btn.pack(side="right", padx=8)
+        self.attach_bar.grid_remove()
+
+        # 输入区
+        input_frame = tk.Frame(panel, bg=t["bg"])
+        input_frame.grid(row=2, column=0, columnspan=2, sticky="ew")
+        input_frame.columnconfigure(1, weight=1)
 
         tk.Button(
-            inp, text="📎", command=self._attach,
+            input_frame, text="📎", command=self._attach_file,
             bg=t["surface2"], fg=t["text"], relief="flat", width=3,
         ).grid(row=0, column=0, padx=(0, 4))
 
         self.input_text = tk.Text(
-            inp, bg=t["entry_bg"], fg=t["entry_fg"],
+            input_frame, bg=t["entry_bg"], fg=t["entry_fg"],
             insertbackground=t["text"], relief="flat",
             font=("Microsoft YaHei", 10), height=3, wrap="word",
             highlightthickness=0,
@@ -386,7 +456,7 @@ class ModelForgeApp:
         self.input_text.bind("<Control-Return>", lambda e: self._send())
 
         self.send_btn = tk.Button(
-            inp, text=l["send"], command=self._send,
+            input_frame, text=l["send"], command=self._send,
             bg=t["btn_bg"], fg=t["btn_fg"], relief="flat", padx=16,
             font=("Microsoft YaHei", 10, "bold"),
         )
@@ -394,40 +464,40 @@ class ModelForgeApp:
 
         self._show_welcome()
 
-    def _create_right(self):
+    # ────────────────────────────────────────
+    # 右栏：模型+日志+设置
+    # ────────────────────────────────────────
+    def _create_right_panel(self):
         t, l = self.t, self.l
-        f = tk.Frame(self.root, bg=t["bg"])
-        f.grid(row=0, column=2, sticky="nsew", padx=(2, 5), pady=5)
-        f.rowconfigure(0, weight=2)
-        f.rowconfigure(1, weight=3)
-        f.rowconfigure(2, weight=0)
-        f.columnconfigure(0, weight=1)
+        panel = tk.Frame(self.root, bg=t["bg"])
+        panel.grid(row=0, column=2, sticky="nsew", padx=(2, 5), pady=5)
+        panel.rowconfigure(0, weight=2)
+        panel.rowconfigure(1, weight=3)
+        panel.rowconfigure(2, weight=0)
+        panel.columnconfigure(0, weight=1)
 
-        mf = tk.LabelFrame(
-            f, text=f" {l['models']} ", bg=t["surface"], fg=t["muted"],
+        model_frame = tk.LabelFrame(
+            panel, text=f" {l['models']} ", bg=t["surface"], fg=t["muted"],
             font=("Microsoft YaHei", 10, "bold"), relief="groove", bd=1,
             labelanchor="nw",
         )
-        mf.grid(row=0, column=0, sticky="nsew", pady=(0, 3))
-        mf.rowconfigure(0, weight=1)
-        mf.columnconfigure(0, weight=1)
+        model_frame.grid(row=0, column=0, sticky="nsew", pady=(0, 3))
+        model_frame.rowconfigure(0, weight=1)
+        model_frame.columnconfigure(0, weight=1)
 
         style = ttk.Style()
         style.theme_use("default")
         style.configure(
             "Model.Treeview", background=t["surface"], foreground=t["text"],
             fieldbackground=t["surface"], rowheight=26,
-            font=("Microsoft YaHei", 9),
-        )
+            font=("Microsoft YaHei", 9))
         style.configure(
             "Model.Treeview.Heading", background=t["surface2"],
-            foreground=t["muted"], font=("Microsoft YaHei", 9),
-        )
+            foreground=t["muted"], font=("Microsoft YaHei", 9))
 
         self.model_tree = ttk.Treeview(
-            mf, style="Model.Treeview", columns=("role", "dir"),
-            show="tree headings", height=5,
-        )
+            model_frame, style="Model.Treeview",
+            columns=("role", "dir"), show="tree headings", height=5)
         self.model_tree.heading("#0", text=l["m_name"])
         self.model_tree.heading("role", text="角色")
         self.model_tree.heading("dir", text=l["m_dir"])
@@ -436,140 +506,134 @@ class ModelForgeApp:
         self.model_tree.column("dir", width=80)
         self.model_tree.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
         self.model_tree.bind("<Double-1>", self._edit_model)
-        self.model_tree.bind("<Button-3>", self._model_ctx)
+        self.model_tree.bind("<Button-3>", self._model_context_menu)
 
         tk.Button(
-            mf, text=l["add_model"], command=self._add_model,
+            model_frame, text=l["add_model"], command=self._add_model,
             bg=t["btn_bg"], fg=t["btn_fg"], relief="flat",
             font=("Microsoft YaHei", 9),
         ).grid(row=1, column=0, sticky="ew", padx=4, pady=4)
 
-        lf = tk.LabelFrame(
-            f, text=f" {l['logs']} ", bg=t["surface"], fg=t["muted"],
+        log_frame = tk.LabelFrame(
+            panel, text=f" {l['logs']} ", bg=t["surface"], fg=t["muted"],
             font=("Microsoft YaHei", 10, "bold"), relief="groove", bd=1,
             labelanchor="nw",
         )
-        lf.grid(row=1, column=0, sticky="nsew", pady=3)
-        lf.rowconfigure(0, weight=1)
-        lf.columnconfigure(0, weight=1)
+        log_frame.grid(row=1, column=0, sticky="nsew", pady=3)
+        log_frame.rowconfigure(0, weight=1)
+        log_frame.columnconfigure(0, weight=1)
 
         self.log_text = tk.Text(
-            lf, bg=t["surface"], fg=t["muted"], relief="flat",
+            log_frame, bg=t["surface"], fg=t["muted"], relief="flat",
             font=("Consolas", 9), wrap="word", state="disabled",
-            highlightthickness=0, padx=6, pady=4,
-        )
+            highlightthickness=0, padx=6, pady=4)
         self.log_text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
-        lsb = tk.Scrollbar(lf, command=self.log_text.yview)
-        lsb.grid(row=0, column=1, sticky="ns")
-        self.log_text.config(yscrollcommand=lsb.set)
+        log_scrollbar = tk.Scrollbar(log_frame, command=self.log_text.yview)
+        log_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.log_text.config(yscrollcommand=log_scrollbar.set)
 
-        sf = tk.LabelFrame(
-            f, text=f" {l['settings']} ", bg=t["surface"], fg=t["muted"],
+        settings_frame = tk.LabelFrame(
+            panel, text=f" {l['settings']} ", bg=t["surface"], fg=t["muted"],
             font=("Microsoft YaHei", 10, "bold"), relief="groove", bd=1,
             labelanchor="nw",
         )
-        sf.grid(row=2, column=0, sticky="ew", pady=(3, 0))
+        settings_frame.grid(row=2, column=0, sticky="ew", pady=(3, 0))
 
-        r1 = tk.Frame(sf, bg=t["surface"])
-        r1.pack(fill="x", padx=8, pady=2)
+        row1 = tk.Frame(settings_frame, bg=t["surface"])
+        row1.pack(fill="x", padx=8, pady=2)
         tk.Label(
-            r1, text=l["theme"], bg=t["surface"], fg=t["text"],
-            font=("Microsoft YaHei", 9),
-        ).pack(side="left")
+            row1, text=l["theme"], bg=t["surface"], fg=t["text"],
+            font=("Microsoft YaHei", 9)).pack(side="left")
         self.theme_cb = ttk.Combobox(
-            r1, values=[l["dark"], l["light"]], state="readonly", width=8,
-        )
+            row1, values=[l["dark"], l["light"]], state="readonly", width=10)
         self.theme_cb.set(
-            l["dark"] if self.cfg.get("theme") == "dark" else l["light"]
-        )
+            l["dark"] if self.cfg.get("theme") == "dark" else l["light"])
         self.theme_cb.pack(side="right")
         self.theme_cb.bind("<<ComboboxSelected>>", self._change_theme)
 
-        r2 = tk.Frame(sf, bg=t["surface"])
-        r2.pack(fill="x", padx=8, pady=2)
+        row2 = tk.Frame(settings_frame, bg=t["surface"])
+        row2.pack(fill="x", padx=8, pady=2)
         tk.Label(
-            r2, text=l["lang"], bg=t["surface"], fg=t["text"],
-            font=("Microsoft YaHei", 9),
-        ).pack(side="left")
+            row2, text=l["lang"], bg=t["surface"], fg=t["text"],
+            font=("Microsoft YaHei", 9)).pack(side="left")
         self.lang_cb = ttk.Combobox(
-            r2, values=["中文", "English"], state="readonly", width=8,
-        )
+            row2, values=["中文", "English"], state="readonly", width=10)
         self.lang_cb.set(
-            "中文" if self.cfg.get("language") == "zh" else "English"
-        )
+            "中文" if self.cfg.get("language") == "zh" else "English")
         self.lang_cb.pack(side="right")
         self.lang_cb.bind("<<ComboboxSelected>>", self._change_lang)
 
-        r3 = tk.Frame(sf, bg=t["surface"])
-        r3.pack(fill="x", padx=8, pady=(2, 6))
+        row3 = tk.Frame(settings_frame, bg=t["surface"])
+        row3.pack(fill="x", padx=8, pady=(2, 6))
         tk.Label(
-            r3, text=l["storage"], bg=t["surface"], fg=t["text"],
-            font=("Microsoft YaHei", 9),
-        ).pack(side="left")
+            row3, text=l["storage"], bg=t["surface"], fg=t["text"],
+            font=("Microsoft YaHei", 9)).pack(side="left")
         tk.Button(
-            r3, text=l["browse"], command=self._browse_storage,
-            bg=t["surface2"], fg=t["text"], relief="flat",
-        ).pack(side="right")
+            row3, text=l["browse"], command=self._browse_storage,
+            bg=t["surface2"], fg=t["text"], relief="flat").pack(side="right")
 
-    # ── 对话管理 ──
-
+    # ================================================================
+    # 对话管理
+    # ================================================================
     def _load_all_conversations(self):
-        sp = self.cfg.get("storage_path", "./conversations")
-        os.makedirs(sp, exist_ok=True)
+        storage_path = self.cfg.get("storage_path", "./conversations")
+        os.makedirs(storage_path, exist_ok=True)
         self.conversations = {}
-        for fn in os.listdir(sp):
-            if fn.endswith(".json"):
+        for filename in os.listdir(storage_path):
+            if filename.endswith(".json"):
                 try:
-                    with open(os.path.join(sp, fn), "r", encoding="utf-8") as f:
-                        c = json.load(f)
-                        self.conversations[c["id"]] = c
+                    filepath = os.path.join(storage_path, filename)
+                    with open(filepath, "r", encoding="utf-8") as f:
+                        conv = json.load(f)
+                        self.conversations[conv["id"]] = conv
                 except Exception:
                     pass
         self._refresh_conv_list()
 
-    def _save_conv(self, cid):
-        c = self.conversations.get(cid)
-        if not c:
+    def _save_conv(self, conv_id):
+        conv = self.conversations.get(conv_id)
+        if not conv:
             return
-        sp = self.cfg.get("storage_path", "./conversations")
-        os.makedirs(sp, exist_ok=True)
-        with open(os.path.join(sp, f"{cid}.json"), "w", encoding="utf-8") as f:
-            json.dump(c, f, ensure_ascii=False, indent=2)
+        storage_path = self.cfg.get("storage_path", "./conversations")
+        os.makedirs(storage_path, exist_ok=True)
+        filepath = os.path.join(storage_path, f"{conv_id}.json")
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(conv, f, ensure_ascii=False, indent=2)
 
     def _new_conv(self):
-        cid = f"conv_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.conversations[cid] = {
-            "id": cid, "title": "新对话", "created": now, "updated": now,
+        conv_id = f"conv_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.conversations[conv_id] = {
+            "id": conv_id, "title": "新对话 (New Chat)",
+            "created": now, "updated": now,
             "pinned": False, "messages": [],
         }
-        self._save_conv(cid)
+        self._save_conv(conv_id)
         self._refresh_conv_list()
-        self._switch_conv(cid)
+        self._switch_conv(conv_id)
 
     def _refresh_conv_list(self):
-        q = self.search_var.get().strip().lower()
+        query = self.search_var.get().strip().lower()
         hint = self.l["search_hint"].lower()
-        if q == hint:
-            q = ""
+        if query == hint:
+            query = ""
+
         self.conv_lb.delete(0, "end")
         self.conv_id_list = []
 
         pinned = sorted(
             [c for c in self.conversations.values() if c.get("pinned")],
-            key=lambda c: c.get("updated", ""), reverse=True,
-        )
+            key=lambda c: c.get("updated", ""), reverse=True)
         normal = sorted(
             [c for c in self.conversations.values() if not c.get("pinned")],
-            key=lambda c: c.get("updated", ""), reverse=True,
-        )
+            key=lambda c: c.get("updated", ""), reverse=True)
 
-        for c in pinned + normal:
-            if q and q not in c["title"].lower():
+        for conv in pinned + normal:
+            if query and query not in conv["title"].lower():
                 continue
-            prefix = "📌 " if c.get("pinned") else ""
-            self.conv_lb.insert("end", f"{prefix}{c['title']}")
-            self.conv_id_list.append(c["id"])
+            prefix = "📌 " if conv.get("pinned") else ""
+            self.conv_lb.insert("end", f"{prefix}{conv['title']}")
+            self.conv_id_list.append(conv["id"])
 
     def _on_conv_select(self, event=None):
         sel = self.conv_lb.curselection()
@@ -577,27 +641,34 @@ class ModelForgeApp:
             return
         self._switch_conv(self.conv_id_list[sel[0]])
 
-    def _switch_conv(self, cid):
-        if cid not in self.conversations:
+    def _switch_conv(self, conv_id):
+        if conv_id not in self.conversations:
             return
-        self.current_conv = cid
+        self.current_conv = conv_id
         self._render_chat()
 
     def _render_chat(self):
         self.chat_text.config(state="normal")
         self.chat_text.delete("1.0", "end")
-        c = self.conversations.get(self.current_conv)
-        if not c:
+        conv = self.conversations.get(self.current_conv)
+        if not conv:
             self.chat_text.config(state="disabled")
             return
-        for m in c["messages"]:
-            ts = m.get("timestamp", "")[-8:]
-            if m["role"] == "user":
+        for msg in conv["messages"]:
+            ts = msg.get("timestamp", "")[-8:]
+            if msg["role"] == "user":
                 self.chat_text.insert("end", f"你  {ts}\n", "user_tag")
-                self.chat_text.insert("end", f"{m['content']}\n\n", "msg")
+                attachments = msg.get("attachments", [])
+                if attachments:
+                    file_str = ", ".join(attachments)
+                    self.chat_text.insert(
+                        "end", f"📎 附件: {file_str}\n", "file_tag")
+                self.chat_text.insert(
+                    "end", f"{msg['content']}\n\n", "msg")
             else:
                 self.chat_text.insert("end", f"AI  {ts}\n", "ai_tag")
-                self.chat_text.insert("end", f"{m['content']}\n\n", "msg")
+                self.chat_text.insert(
+                    "end", f"{msg['content']}\n\n", "msg")
         self.chat_text.config(state="disabled")
         self.chat_text.see("end")
 
@@ -606,106 +677,103 @@ class ModelForgeApp:
         self.chat_text.insert("end", self.l["welcome"] + "\n", "sys")
         self.chat_text.config(state="disabled")
 
-    def _conv_context(self, event):
+    def _conv_context_menu(self, event):
         idx = self.conv_lb.nearest(event.y)
         if idx < 0:
             return
         self.conv_lb.selection_set(idx)
-        cid = self.conv_id_list[idx]
-        c = self.conversations.get(cid, {})
+        conv_id = self.conv_id_list[idx]
+        conv = self.conversations.get(conv_id, {})
 
-        menu = tk.Menu(
-            self.root, tearoff=0, bg=self.t["surface"],
-            fg=self.t["text"], relief="flat",
-        )
-        if c.get("pinned"):
-            menu.add_command(
-                label=self.l["unpin"], command=lambda: self._pin(cid, False))
+        menu = tk.Menu(self.root, tearoff=0, bg=self.t["surface"],
+                       fg=self.t["text"], relief="flat")
+        if conv.get("pinned"):
+            menu.add_command(label=self.l["unpin"],
+                             command=lambda: self._pin_conv(conv_id, False))
         else:
-            menu.add_command(
-                label=self.l["pin"], command=lambda: self._pin(cid, True))
-        menu.add_command(
-            label=self.l["rename"], command=lambda: self._rename(cid))
-        menu.add_command(
-            label=self.l["export"], command=lambda: self._export(cid))
+            menu.add_command(label=self.l["pin"],
+                             command=lambda: self._pin_conv(conv_id, True))
+        menu.add_command(label=self.l["rename"],
+                         command=lambda: self._rename_conv(conv_id))
+        menu.add_command(label=self.l["export"],
+                         command=lambda: self._export_conv(conv_id))
         menu.add_separator()
-        menu.add_command(
-            label=self.l["delete"], command=lambda: self._delete_conv(cid))
+        menu.add_command(label=self.l["delete"],
+                         command=lambda: self._delete_conv(conv_id))
         menu.tk_popup(event.x_root, event.y_root)
 
-    def _pin(self, cid, val):
-        self.conversations[cid]["pinned"] = val
-        self._save_conv(cid)
+    def _pin_conv(self, conv_id, pinned):
+        self.conversations[conv_id]["pinned"] = pinned
+        self._save_conv(conv_id)
         self._refresh_conv_list()
 
-    def _rename(self, cid):
-        old = self.conversations[cid]["title"]
-        new = simpledialog.askstring(
+    def _rename_conv(self, conv_id):
+        old_title = self.conversations[conv_id]["title"]
+        new_title = simpledialog.askstring(
             self.l["rename"], self.l["rename"],
-            initialvalue=old, parent=self.root,
-        )
-        if new and new.strip():
-            self.conversations[cid]["title"] = new.strip()
-            self._save_conv(cid)
+            initialvalue=old_title, parent=self.root)
+        if new_title and new_title.strip():
+            self.conversations[conv_id]["title"] = new_title.strip()
+            self._save_conv(conv_id)
             self._refresh_conv_list()
 
-    def _export(self, cid):
-        c = self.conversations.get(cid)
-        if not c:
+    def _export_conv(self, conv_id):
+        conv = self.conversations.get(conv_id)
+        if not conv:
             return
         path = filedialog.asksaveasfilename(
             defaultextension=".txt",
-            filetypes=[("Text", "*.txt"), ("JSON", "*.json")],
-        )
+            filetypes=[("Text", "*.txt"), ("JSON", "*.json")])
         if not path:
             return
         with open(path, "w", encoding="utf-8") as f:
             if path.endswith(".json"):
-                json.dump(c, f, ensure_ascii=False, indent=2)
+                json.dump(conv, f, ensure_ascii=False, indent=2)
             else:
-                for m in c["messages"]:
-                    role = "你" if m["role"] == "user" else "AI"
-                    ts = m.get("timestamp", "")
-                    f.write(f"[{role}] {ts}\n{m['content']}\n\n")
+                for msg in conv["messages"]:
+                    role = "你" if msg["role"] == "user" else "AI"
+                    ts = msg.get("timestamp", "")
+                    f.write(f"[{role}] {ts}\n{msg['content']}\n\n")
 
-    def _delete_conv(self, cid):
+    def _delete_conv(self, conv_id):
         if not messagebox.askyesno("", self.l["del_confirm"]):
             return
-        sp = self.cfg.get("storage_path", "./conversations")
-        fp = os.path.join(sp, f"{cid}.json")
-        if os.path.exists(fp):
-            os.remove(fp)
-        self.conversations.pop(cid, None)
-        if self.current_conv == cid:
+        storage_path = self.cfg.get("storage_path", "./conversations")
+        filepath = os.path.join(storage_path, f"{conv_id}.json")
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        self.conversations.pop(conv_id, None)
+        if self.current_conv == conv_id:
             self.current_conv = None
             self.chat_text.config(state="normal")
             self.chat_text.delete("1.0", "end")
             self.chat_text.config(state="disabled")
         self._refresh_conv_list()
 
-    # ── 模型管理 ──
-
+    # ================================================================
+    # 模型管理
+    # ================================================================
     def _refresh_model_list(self):
         for item in self.model_tree.get_children():
             self.model_tree.delete(item)
+
         main = self.cfg.get_main_model()
         if main:
             self.model_tree.insert(
                 "", "end", iid="main", text=main.get("name", "未命名"),
-                values=(self.l["main"], main.get("direction", "")),
-            )
+                values=(self.l["main"], main.get("direction", "")))
+
         for i, sub in enumerate(self.cfg.get_sub_models()):
             self.model_tree.insert(
                 "", "end", iid=f"sub_{i}", text=sub.get("name", "未命名"),
-                values=(self.l["sub"], sub.get("direction", "")),
-            )
+                values=(self.l["sub"], sub.get("direction", "")))
 
     def _add_model(self):
         def on_save(data):
             choice = messagebox.askyesno(
-                "角色选择", "设为主模型？\n\n是 = 主模型\n否 = 副模型",
-                parent=self.root,
-            )
+                "角色选择 (Role)",
+                "设为主模型？\n\n是(Yes) = 主模型 (Main)\n否(No) = 副模型 (Sub)",
+                parent=self.root)
             if choice:
                 data["id"] = "main"
                 self.cfg.set_main_model(data)
@@ -735,7 +803,8 @@ class ModelForgeApp:
                 self.add_log(f"已更新主模型: {d['name']}")
 
             ModelConfigDialog(
-                self.root, self.t, self.l, model_data=data, callback=on_save)
+                self.root, self.t, self.l,
+                model_data=data, callback=on_save)
         else:
             idx = int(iid.split("_")[1])
             subs = self.cfg.get_sub_models()
@@ -749,23 +818,22 @@ class ModelForgeApp:
                 self.add_log(f"已更新副模型: {d['name']}")
 
             ModelConfigDialog(
-                self.root, self.t, self.l, model_data=subs[idx],
-                callback=on_save)
+                self.root, self.t, self.l,
+                model_data=subs[idx], callback=on_save)
 
-    def _model_ctx(self, event):
+    def _model_context_menu(self, event):
         sel = self.model_tree.selection()
         if not sel:
             return
         iid = sel[0]
-        menu = tk.Menu(
-            self.root, tearoff=0, bg=self.t["surface"],
-            fg=self.t["text"], relief="flat",
-        )
-        menu.add_command(label="编辑", command=self._edit_model)
-        menu.add_command(label="删除", command=lambda: self._del_model(iid))
+        menu = tk.Menu(self.root, tearoff=0, bg=self.t["surface"],
+                       fg=self.t["text"], relief="flat")
+        menu.add_command(label="编辑 (Edit)", command=self._edit_model)
+        menu.add_command(label="删除 (Delete)",
+                         command=lambda: self._delete_model(iid))
         menu.tk_popup(event.x_root, event.y_root)
 
-    def _del_model(self, iid):
+    def _delete_model(self, iid):
         if not messagebox.askyesno("", self.l["del_model_confirm"]):
             return
         if iid == "main":
@@ -774,37 +842,53 @@ class ModelForgeApp:
             idx = int(iid.split("_")[1])
             self.cfg.remove_sub_model(idx)
         self._refresh_model_list()
-        self.add_log("已删除模型")
+        self.add_log("已删除模型 (Model deleted)")
 
-    # ── 发送消息 ──
-
+    # ================================================================
+    # 发送消息
+    # ================================================================
     def _send(self):
         msg = self.input_text.get("1.0", "end").strip()
-        if not msg:
+        if not msg and not self.attachments:
             return
         self.input_text.delete("1.0", "end")
 
         if not self.current_conv:
-            title = msg[:25] + ("..." if len(msg) > 25 else "")
-            cid = f"conv_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            title = (msg or "图片对话")[:25]
+            if len(msg or "图片对话") > 25:
+                title += "..."
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            self.conversations[cid] = {
-                "id": cid, "title": title, "created": now, "updated": now,
+            conv_id = f"conv_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            self.conversations[conv_id] = {
+                "id": conv_id, "title": title,
+                "created": now, "updated": now,
                 "pinned": False, "messages": [],
             }
-            self.current_conv = cid
+            self.current_conv = conv_id
             self._refresh_conv_list()
-            self._switch_conv(cid)
+            self._switch_conv(conv_id)
 
         conv = self.conversations[self.current_conv]
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        conv["messages"].append(
-            {"role": "user", "content": msg, "timestamp": now})
+
+        file_names = [os.path.basename(p) for p in self.attachments]
+        conv["messages"].append({
+            "role": "user",
+            "content": msg,
+            "timestamp": now,
+            "attachments": file_names,
+        })
         conv["updated"] = now
 
         if len(conv["messages"]) == 1:
-            conv["title"] = msg[:25] + ("..." if len(msg) > 25 else "")
+            conv["title"] = (msg or "图片对话")[:25]
+            if len(msg or "图片对话") > 25:
+                conv["title"] += "..."
             self._refresh_conv_list()
+
+        attachments = list(self.attachments)
+        self.attachments = []
+        self._update_attach_bar()
 
         self._save_conv(self.current_conv)
         self._render_chat()
@@ -816,14 +900,10 @@ class ModelForgeApp:
         self.chat_text.see("end")
         self.send_btn.config(state="disabled")
 
-        attachments = list(self.attachments)
-        self.attachments = []
-
         def worker():
             history = [
                 {"role": m["role"], "content": m["content"]}
-                for m in conv["messages"][:-1]
-            ]
+                for m in conv["messages"][:-1]]
             try:
                 resp = self.orch.process(
                     msg, images=attachments, history=history)
@@ -851,19 +931,37 @@ class ModelForgeApp:
         self._render_chat()
         self.send_btn.config(state="normal")
 
-    # ── 附件 ──
-
-    def _attach(self):
+    # ================================================================
+    # 附件
+    # ================================================================
+    def _attach_file(self):
         paths = filedialog.askopenfilenames(
-            title="选择图片",
-            filetypes=[("图片", "*.png *.jpg *.jpeg *.gif *.webp *.bmp")],
-        )
+            title="选择图片 (Select Images)",
+            filetypes=[("图片", "*.png *.jpg *.jpeg *.gif *.webp *.bmp")])
         if paths:
             self.attachments.extend(paths)
+            self._update_attach_bar()
             self.add_log(f"已附加 {len(paths)} 个文件")
 
-    # ── 日志 ──
+    def _update_attach_bar(self):
+        if not self.attachments:
+            self.attach_bar.grid_remove()
+            return
+        names = [os.path.basename(p) for p in self.attachments]
+        display = "📎 已附加: " + ", ".join(names)
+        if len(display) > 80:
+            display = display[:77] + "..."
+        self.attach_label.config(text=display)
+        self.attach_bar.grid()
 
+    def _clear_attachments(self):
+        self.attachments = []
+        self._update_attach_bar()
+        self.add_log("已清除所有附件")
+
+    # ================================================================
+    # 日志
+    # ================================================================
     def add_log(self, msg):
         ts = datetime.now().strftime("%H:%M:%S")
         line = f"[{ts}] {msg}\n"
@@ -879,10 +977,11 @@ class ModelForgeApp:
         else:
             self.root.after(0, _insert)
 
-    # ── 设置 ──
-
+    # ================================================================
+    # 设置
+    # ================================================================
     def _change_theme(self, event=None):
-        val = "dark" if self.theme_cb.get() == self.l["dark"] else "light"
+        val = "dark" if self.theme_cb.get().startswith(self.l["dark"][:2]) else "light"
         self.cfg.set("theme", val)
         messagebox.showinfo("", "主题将在重启后生效")
 
