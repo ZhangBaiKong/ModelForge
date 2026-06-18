@@ -1,0 +1,27 @@
+# ═══════════════════════════════════════════
+# ModelForge .gitignore
+# ═══════════════════════════════════════════
+
+# ── 运行时数据（用户隐私，绝不上传） ──
+config.json
+conversations/
+__pycache__/
+*.pyc
+
+# ── 打包产物（太大，不传仓库） ──
+dist/
+build/
+release/
+*.exe
+
+# ── 打包工具（本地打包用，不传GitHub） ──
+build-tools/
+
+# ── 测试目录 ──
+ModelForge-测试/
+
+# ── 备份 ──
+_backup/
+
+# ── Git内部 ──
+.git/
