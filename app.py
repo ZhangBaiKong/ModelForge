@@ -14,6 +14,7 @@ from datetime import datetime
 
 from config_manager import ConfigManager
 from engine import Orchestrator
+from updater import Updater
 
 
 # ================================================================
@@ -308,7 +309,9 @@ class ModelForgeApp:
         self._create_right_panel()
         self._load_all_conversations()
         self._refresh_model_list()
+        self.updater = Updater(log_callback=self.add_log)
         self.add_log("应用已启动 (Application started)")
+        self.root.after(5000, self._auto_check_update)
 
     # ────────────────────────────────────────
     # 窗口基础设置
@@ -571,6 +574,25 @@ class ModelForgeApp:
         tk.Button(
             row3, text=l["browse"], command=self._browse_storage,
             bg=t["surface2"], fg=t["text"], relief="flat").pack(side="right")
+        
+
+        row4 = tk.Frame(settings_frame, bg=t["surface"])
+        row4.pack(fill="x", padx=8, pady=(2, 6))
+        tk.Button(
+            row4, text="检查更新 (Check Update)",
+            command=self._manual_check_update,
+            bg=t["surface2"], fg=t["text"], relief="flat").pack(fill="x")
+        
+
+
+        def _manual_check_update(self):
+             def cb(has_update, version, changelog):
+                 if has_update:
+                     self.root.after(0, lambda: self._ask_update(version, changelog))
+                 else:
+                     self.root.after(0, lambda: messagebox.showinfo(
+                         "检查更新", f"已是最新版本 v{self.updater.current_version}"))
+             self.updater.check_async(callback=cb)    
 
     # ================================================================
     # 对话管理
@@ -998,3 +1020,57 @@ class ModelForgeApp:
 
     def run(self):
         self.root.mainloop()
+
+
+        # ================================================================
+    # 自动更新 (Auto Update)
+    # ================================================================
+    def _auto_check_update(self):
+        def cb(has_update, version, changelog):
+            if has_update:
+                self.root.after(0, lambda: self._ask_update(version, changelog))
+        self.updater.check_async(callback=cb)
+
+    def _ask_update(self, version, changelog):
+        msg = (f"发现新版本 v{version}\n\n"
+               f"更新内容:\n{changelog}\n\n"
+               f"是否立即更新？")
+        if messagebox.askyesno("软件更新", msg):
+            self._do_update()
+
+    def _do_update(self):
+        win = tk.Toplevel(self.root)
+        win.title("更新中...")
+        win.geometry("400x150")
+        win.configure(bg=self.t["bg"])
+        win.resizable(False, False)
+        win.grab_set()
+
+        tk.Label(win, text="正在更新，请勿关闭...",
+                 bg=self.t["bg"], fg=self.t["text"],
+                 font=("Microsoft YaHei", 11)).pack(pady=(20, 10))
+
+        bar = ttk.Progressbar(win, length=350, mode="determinate")
+        bar.pack(pady=5)
+
+        status = tk.Label(win, text="准备中...",
+                          bg=self.t["bg"], fg=self.t["muted"],
+                          font=("Microsoft YaHei", 9))
+        status.pack(pady=5)
+
+        def on_progress(pct, msg):
+            if pct >= 0:
+                self.root.after(0, lambda: bar.configure(value=pct))
+            self.root.after(0, lambda: status.configure(text=msg))
+
+        def worker():
+            ok = self.updater.download_and_update(progress_callback=on_progress)
+            self.root.after(0, win.destroy)
+            if ok:
+                self.root.after(0, lambda: messagebox.showinfo(
+                    "更新完成", "更新成功！请重启软件。"))
+            else:
+                self.root.after(0, lambda: messagebox.showerror(
+                    "更新失败", "更新出错，请稍后重试。"))
+
+        threading.Thread(target=worker, daemon=True).start()    
